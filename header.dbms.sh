@@ -3,7 +3,7 @@ function CreateTable {
 	echo -e "Enter Tablename: \c"
 	read tableName
 
-	if [ -f "LocalDBs"/$1/$tableName"_meta.db"]
+	if [ -f "LocalDBs"/$1/$tableName"_meta.db" ]
 	then
 		echo "Table already exist"
 		#callmenufun
@@ -16,6 +16,7 @@ function CreateTable {
 		RecordSep="\n"
 		PK=""
 		meta="Field"$FieldSep"Type"$FieldSep"Key"
+		ColType=""
 		for ((i=1;i<=$ColNum;i++))
 
 			do
@@ -23,33 +24,41 @@ function CreateTable {
 				read ColName
 				echo "Enter Column Type: "
 				while true
+				echo "while!"
 					do
 					select choice in "int" "varchar"
 					do
 						case $REPLY in
-						1) ColType="int"
-							break
+						1 ) ColType="int"
+
+							break 2
+							echo "in 1 case "
 							;;
-						2) ColType="varchar"
-							break
+						2 ) ColType="varchar";
+							break 2
+							echo "in 1 case "
 							;;
-						*) echo "invalid choice"
-							;;
+						* ) echo "invalid choice"
+			echo "in def case"							
+			;;
 					esac
 					done
 		                done
- 			if [ $PK="" ] || [ $PK -eq 0 ]
+
+ 			if test false 
 			then
+			echo PREV PK $PK
 			echo  "Is it Primary Key?"
 			while true
 			do
-			echo -e " 1 : YES , 2 : No \c"			
-			read 
-				case $REPLY in
-				1) PK=1
-				   meta=$meta$RecordSep$ColName$FieldSep$ColType"1"      						break		;;
-				2) PK=0
-				   meta=$meta$RecordSep$ColName$FieldSep$ColType"0"
+			echo -e " 1 : YES , 2 : No >> \c"			
+			read choice
+				case $choice in
+				1) PK="1"
+				   meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"1"
+				   break		;;
+				2) PK="0"
+				   meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"0"
 					break
 							;;
 				*) echo "invalid choice"
@@ -58,13 +67,14 @@ function CreateTable {
 			done		
 
 			else
-			meta=$meta$RecordSep$ColName$FieldSep$ColType"0"
+			meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"0"
 			fi
 
 
 
 		done
-		
+		echo -e  META $meta
+		echo printing data!
 		echo -e $meta >> "LocalDBs"/$1/$tableName"_meta.db"
 
 	fi
@@ -72,21 +82,24 @@ function CreateTable {
 }
 
 function CreateDB {
-while true
-do
+#while true
+#do
 if [ -d "LocalDBs"/$1 ]
 then
-echo "DB already exists"
-echo -e "Exit? [y|N]\c "
-elif [ $REPLY = "y" ] 
-then
-break
+	echo "DB already exists"
+	#echo -e "Exit? [y|N]\c"
+	#read choice
+#echo $choice
+#elif [ $choice == y ] 
+#then
+	#echo ineflif
+	#break
 else
 mkdir "LocalDBs"/$1
 echo $1 >> local_DBMS.dbms
-break
+#break
 fi
-done
+#done
 }
 
 
