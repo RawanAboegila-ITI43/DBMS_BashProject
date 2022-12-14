@@ -1,5 +1,5 @@
 #! /bin/bash
-function createTable {
+function CreateTable {
 	echo -e "Enter Tablename: \c"
 	read tableName
 
@@ -70,3 +70,37 @@ function createTable {
 	fi
 #displayMenu
 }
+
+function CreateDB {
+while true
+do
+if [ -d "LocalDBs"/$1 ]
+then
+echo "DB already exists"
+echo -e "Exit? [y|N]\c "
+elif [ $REPLY = "y" ] 
+then
+break
+else
+mkdir "LocalDBs"/$1
+echo $1 >> local_DBMS.dbms
+break
+fi
+done
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
