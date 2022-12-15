@@ -48,7 +48,9 @@ function CreateTable {
 			if  [[ -z $PK || $PK == "0" ]]  
 			then
 			
+
 			echo  -e "\nIs it Primary Key?"
+
 			while true
 			do
 			echo -e " 1 : YES , 2 : No >> \c"			
