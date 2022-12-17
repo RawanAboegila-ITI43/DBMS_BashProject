@@ -10,7 +10,7 @@ function CreateTable {
 	else 
 	touch "LocalDBs"/$1/$tableName"_meta.db"
 	touch "LocalDBs"/$1/$tableName".db" 
-		echo -e "Enter number of columns: \c"
+		echo -e "Enter Number of Columns: \c"
 		read ColNum
 		FieldSep=":"
 		RecordSep="\n"
@@ -20,11 +20,11 @@ function CreateTable {
 		for ((i=1;i<=$ColNum;i++))
 
 			do
-				echo -e  "Enter Column Name: \c"
+				echo -e  "\n\nEnter Column #$i Name: \c"
 				read ColName
-				echo "Enter Column Type: "
+				echo -e "\nEnter Column Type: "
 				while true
-				echo "while!"
+				
 					do
 					select choice in "int" "varchar"
 					do
@@ -39,16 +39,16 @@ function CreateTable {
 							echo "in 1 case "
 							;;
 						* ) echo "invalid choice"
-			echo "in def case"							
+									
 			;;
 					esac
 					done
 		                done
-
- 			if test false 
+			
+			if  [[ -z $PK || $PK == "0" ]]  
 			then
-			echo PREV PK $PK
-			echo  "Is it Primary Key?"
+			
+			echo  -e "\nIs it Primary Key?"
 			while true
 			do
 			echo -e " 1 : YES , 2 : No >> \c"			
@@ -56,10 +56,10 @@ function CreateTable {
 				case $choice in
 				1) PK="1"
 				   meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"1"
-				   break		;;
+				   break 		;;
 				2) PK="0"
 				   meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"0"
-					break
+				   break 
 							;;
 				*) echo "invalid choice"
 							;;
@@ -70,11 +70,10 @@ function CreateTable {
 			meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"0"
 			fi
 
-
-
 		done
-		echo -e  META $meta
-		echo printing data!
+		
+		echo -e "\n Printing data!"
+
 		echo -e $meta >> "LocalDBs"/$1/$tableName"_meta.db"
 
 	fi
@@ -102,8 +101,32 @@ fi
 #done
 }
 
+function DropTable {
+echo -e "Enter Table Name To Be Deleted: \c"
+read tableName
+if [ -f "LocalDBs"/$1/$tableName"_meta.db" ]
+then
+rm -i "LocalDBs"/$1/$tableName"_meta.db"
+rm -i "LocalDBs"/$1/$tableName".db"
+else
+	echo "Table doesn't exist"
 
 
+fi
+}
+
+function DeleteDB {
+	echo -e "Enter DB Name To be Deleted: \c"
+	read dbName
+	if [ -d "LocalDBs"/$dbName ]
+	then
+		rm -r "LocalDBs"/$dbName
+		rid=$(awk '{for(i=1;i<=NR;i++){if($i=="'$dbName'") print i}}' ~/DBMS/local_DBMS.dbms)
+		sed -i "$rid d" ~/DBMS/local_DBMS.dbms
+	else
+		echo "DB doesn't exist"
+	fi	
+}
 
 
 
