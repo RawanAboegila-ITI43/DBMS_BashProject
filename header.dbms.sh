@@ -1,4 +1,9 @@
 #! /bin/bash
+
+#########################################################################################
+#					Table Functions					#
+#########################################################################################
+
 function CreateTable {
 	echo -e "Enter Tablename: \c"
 	read tableName
@@ -79,6 +84,31 @@ function CreateTable {
 #displayMenu
 }
 
+function DropTable {
+echo -e "Enter Table Name To Be Deleted: \c"
+read tableName
+if [ -f "LocalDBs"/$1/$tableName"_meta.db" ]
+then
+rm -i "LocalDBs"/$1/$tableName"_meta.db"
+rm -i "LocalDBs"/$1/$tableName".db"
+else
+	echo "Table doesn't exist"
+
+
+fi
+}
+
+function InsertIntoTable {
+
+}
+
+
+#########################################################################################
+#					Database Functions				#
+#########################################################################################
+
+
+
 function CreateDB {
 #while true
 #do
@@ -100,34 +130,8 @@ fi
 #done
 }
 
-function DropTable {
-echo -e "Enter Table Name To Be Deleted: \c"
-read tableName
-if [ -f "LocalDBs"/$1/$tableName"_meta.db" ]
-then
-rm -i "LocalDBs"/$1/$tableName"_meta.db"
-rm -i "LocalDBs"/$1/$tableName".db"
-else
-	echo "Table doesn't exist"
-
-
-fi
-}
-
-function DropDB {
-	echo -e "Enter DB Name To be Deleted: \c"
-	read dbName
-	if [ -d "LocalDBs"/$dbName ]
-	then
-		rm -r "LocalDBs"/$dbName
-		sed -i "/$dbName/d" "local_DBMS.dbms"
-	else
-		echo "DB doesn't exist"
-	fi	
-}
 
 function SelectDB {
-
 
 echo -e "\nChoose A Database or Create A New One: \n"
 
@@ -149,14 +153,17 @@ select DB_Name in $(awk '{print}' local_DBMS.dbms) "New" "Exit"; do
 	elif [[ $DB_Name == "Exit" ]]
 	then	
 	break
+	else
+	echo -e "Invalid Choice!\n Choose A Valid One!\n"
 	fi
 done
 
 export DB_Name
 }
 
-function RenameDB {
 
+
+function RenameDB {
 
 echo -e "\nChoose A Database: \n"
 
@@ -179,6 +186,22 @@ select DB_Name in $(awk '{print}' local_DBMS.dbms) "Exit"; do
 	fi
 done
 }
+
+
+
+function DropDB {
+	echo -e "Enter DB Name To be Deleted: \c"
+	read dbName
+	if [ -d "LocalDBs"/$dbName ]
+	then
+		rm -r "LocalDBs"/$dbName
+		sed -i "/$dbName/d" "local_DBMS.dbms"
+	else
+		echo "DB doesn't exist"
+	fi	
+}
+
+
 
 function ShowDBs {
 echo -e "\nLocal Databases: \n"
