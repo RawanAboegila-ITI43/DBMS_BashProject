@@ -44,7 +44,7 @@ function CreateTable {
 
 						* ) echo "invalid choice"
 							;;
-					esac
+						esac
 					done
 		                done
 			
@@ -99,7 +99,88 @@ fi
 }
 
 function InsertIntoTable {
+echo $1
+ls "LocalDBs"/$1
+FieldSep=":"
+RecordSep="\n"
+typeset -i numberOfChoices
+((numberOfChoices=$(ls LocalDBs/$1 | grep -c  '._meta.db$') + 1 ))
 
+select TB_Name in $(ls LocalDBs/$1 | grep  '._meta.db$' | cut -d "_" -f1) "Exit"; do
+
+	if [[ $DB_Name != "Exit" && $REPLY < $numberOfChoices ]]
+	then
+	echo $TB_Name
+	break
+	elif [[ $DB_Name == "Exit" ]]
+	then
+	break
+	else
+	echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+	fi
+done
+
+
+ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$TB_Name"_meta.db")
+NumberOfRecords=$(awk 'END{print NR}' "LocalDBs"/$1/$TB_Name".db") 
+
+for (( i = 1; i <= ColNum ; i++))
+do
+	echo -e "now at " $PWD "\n"
+	
+	ColName=$(awk 'BEGIN{FS=":"}{if(NR==(('$i' + 1))) print $1}' "LocalDBs"/$1/$TB_Name"_meta.db")
+	ColType=$(awk 'BEGIN{FS=":"}{if(NR==(('$i'+ 1))) print $2}' "LocalDBs"/$1/$TB_Name"_meta.db")
+	ColPK=$(awk 'BEGIN{FS=":"}{if(NR==(('$i'+ 1))) print $3}' "LocalDBs"/$1/$TB_Name"_meta.db")
+	
+	
+	echo -e "Please Enter Coloumn Value: \n"
+	echo -e "$ColName ( $ColType ) >> \c "
+	read ColValue	
+	echo -e "\n"
+
+	if [[ $ColType == "int" ]]
+	then
+		while ! [[ $ColValue =~ ^[0-9]*$ ]]
+		do
+			echo -e "Invalid Data Type!\nPlease Enter an Integer!\n"
+			echo -e ">> \c"
+			read ColValue
+		done
+	fi
+
+	if [[ $ColPK == "1" && $NumberOfRecords > 0 ]]
+	then
+		while true
+		do
+			if [[ $ColValue =~ ^[`awk 'BEGIN{FS=":"; ORS=" "}{print $'$i'}' "LocalDBs"/$1/$TB_Name".db"`]$ ]]
+			then
+			echo -e "Value Already Exists!\nPlease Enter A Unique Value!\n"
+			echo -e ">> \c"
+			read ColValue
+			else 
+			break
+			fi
+			
+		done
+	fi
+
+	if [[ $i == $ColNum ]]
+	then
+	record=$record$ColValue$RecordSep
+	else
+	record=$record$ColValue$FieldSep
+	fi
+done
+echo -e "$record\c" >> "LocalDBs"/$1/$TB_Name".db"
+
+if [[ $? == 0 ]]
+then
+	echo "Row Inserted Succesfully!"
+else
+	echo "Error Inserting Data Into Table $TB_Name"
+fi
+row=""
+# tables Menu
 }
 
 
