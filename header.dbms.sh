@@ -30,17 +30,15 @@ function CreateTable {
 					do
 						case $REPLY in
 						1 ) ColType="int"
-
 							break 2
-							echo "in 1 case "
 							;;
+
 						2 ) ColType="varchar";
 							break 2
-							echo "in 1 case "
 							;;
+
 						* ) echo "invalid choice"
-									
-			;;
+							;;
 					esac
 					done
 		                done
@@ -116,18 +114,78 @@ else
 fi
 }
 
-function DeleteDB {
+function DropDB {
 	echo -e "Enter DB Name To be Deleted: \c"
 	read dbName
 	if [ -d "LocalDBs"/$dbName ]
 	then
 		rm -r "LocalDBs"/$dbName
-		rid=$(awk '{for(i=1;i<=NR;i++){if($i=="'$dbName'") print i}}' ~/DBMS/local_DBMS.dbms)
-		sed -i "$rid d" ~/DBMS/local_DBMS.dbms
+		sed -i "/$dbName/d" "local_DBMS.dbms"
 	else
 		echo "DB doesn't exist"
 	fi	
 }
+
+function SelectDB {
+
+
+echo -e "\nChoose A Database or Create A New One: \n"
+
+DB_Name=""
+
+select DB_Name in $(awk '{print}' local_DBMS.dbms) "New" "Exit"; do
+
+	if [[ $DB_Name != "Exit" && $DB_Name != "New" ]]
+	then
+	echo -e "Connected To $DB_Name\n"
+	break
+	elif [[ $DB_Name == "New" ]]
+	then
+	clear
+	echo "Enter DB  Name"
+	read DB_Name
+	CreateDB $DB_Name
+	break
+	elif [[ $DB_Name == "Exit" ]]
+	then	
+	break
+	fi
+done
+
+export DB_Name
+}
+
+function RenameDB {
+
+
+echo -e "\nChoose A Database: \n"
+
+DB_Name=""
+
+select DB_Name in $(awk '{print}' local_DBMS.dbms) "Exit"; do
+
+	if [[ $DB_Name != "Exit" ]]
+	then
+	echo -e "Enter New Name >> \c"
+	read newName
+	mv LocalDBs/$DB_Name LocalDBs/$newName
+	sed -i "s/$DB_Name/$newName/" "local_DBMS.dbms"
+	break
+	elif [[ $DB_Name == "Exit" ]]
+	then	
+	break
+	else
+	echo -e "Invalid Choice!\n Choose A Valid One!\n"
+	fi
+done
+}
+
+function ShowDBs {
+echo -e "\nLocal Databases: \n"
+awk  '{print NR "-",$0}' local_DBMS.dbms
+echo -e "\n"
+}
+
 
 
 
