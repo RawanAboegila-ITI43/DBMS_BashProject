@@ -99,20 +99,19 @@ fi
 }
 
 function InsertIntoTable {
-echo $1
-ls "LocalDBs"/$1
+
 FieldSep=":"
 RecordSep="\n"
-typeset -i numberOfChoices
+
 ((numberOfChoices=$(ls LocalDBs/$1 | grep -c  '._meta.db$') + 1 ))
 
 select TB_Name in $(ls LocalDBs/$1 | grep  '._meta.db$' | cut -d "_" -f1) "Exit"; do
 
-	if [[ $DB_Name != "Exit" && $REPLY < $numberOfChoices ]]
+	if [[ $TB_Name != "Exit" ]] && (($REPLY <= $numberOfChoices ))
 	then
 	echo $TB_Name
 	break
-	elif [[ $DB_Name == "Exit" ]]
+	elif [[ $TB_Name == "Exit" ]]
 	then
 	break
 	else
@@ -126,7 +125,7 @@ NumberOfRecords=$(awk 'END{print NR}' "LocalDBs"/$1/$TB_Name".db")
 
 for (( i = 1; i <= ColNum ; i++))
 do
-	echo -e "now at " $PWD "\n"
+	
 	
 	ColName=$(awk 'BEGIN{FS=":"}{if(NR==(('$i' + 1))) print $1}' "LocalDBs"/$1/$TB_Name"_meta.db")
 	ColType=$(awk 'BEGIN{FS=":"}{if(NR==(('$i'+ 1))) print $2}' "LocalDBs"/$1/$TB_Name"_meta.db")
@@ -148,7 +147,7 @@ do
 		done
 	fi
 
-	if [[ $ColPK == "1" && $NumberOfRecords > 0 ]]
+	if [[ $ColPK == "1" ]] && (( $NumberOfRecords > 0 ))
 	then
 		while true
 		do
@@ -183,6 +182,72 @@ row=""
 # tables Menu
 }
 
+function DeleteFromTable {
+FieldSep=":"
+RecordSep="\n"
+
+((numberOfChoices=$(ls LocalDBs/$1 | grep -c  '._meta.db$') + 1 ))
+
+while true
+do
+	echo -e "\nChoose Table \n"
+	select TB_Name in $(ls LocalDBs/$1 | grep  '._meta.db$' | cut -d "_" -f1) "Exit"; do
+
+		if [[ $TB_Name != "Exit" ]] && (( $REPLY <= $numberOfChoices )) 
+		then
+		break 2
+		elif [[ $TB_Name == "Exit" ]]
+		then
+		break 2
+		else
+		echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+		fi
+	done
+done
+
+ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$TB_Name"_meta.db")
+while true
+do
+	echo -e "Choose Condition Coloumn \n"
+	select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
+
+		if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
+		then
+		echo $Col_Name
+		break 2
+		elif [[ $Col_Name == "Exit" ]]
+		then
+		break 2
+		else
+		echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+		fi
+	done
+done
+
+
+(( fieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1 ))
+
+echo -e "Enter Condition Value >> \c"
+read ConditionValue
+
+oldValue=$(awk 'BEGIN{FS="'$FieldSep'"}{if($'$fieldNum'=="'$ConditionValue'") print NR}' "LocalDBs"/$1/$TB_Name".db")
+
+if [[ -z $oldValue ]]
+
+then
+	echo -e "value not found!\n"
+
+else 
+	sed -i ''$oldValue'd' "LocalDBs"/$1/$TB_Name".db"
+	if [[ $? == 0 ]]
+		then echo -e "Record Deleted Succesfully!"
+	else 
+		echo "Failed!"
+	fi
+fi
+
+
+}
 
 #########################################################################################
 #					Database Functions				#
