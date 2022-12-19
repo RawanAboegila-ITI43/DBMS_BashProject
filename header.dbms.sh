@@ -249,6 +249,103 @@ fi
 
 }
 
+
+function UpdateTable
+{
+
+	FieldSep=":"
+	RecordSep="\n"
+
+	((numberOfChoices=$(ls LocalDBs/$1 | grep -c  '._meta.db$') + 1 ))
+
+	select TB_Name in $(ls LocalDBs/$1 | grep  '.meta.db$' | cut -d "_" -f1) "Exit"; do
+
+		if [[ $TB_Name != "Exit" ]] && (( $REPLY <= $numberOfChoices ))
+		then
+		echo $TB_Name
+		break
+		elif [[ $TB_Name == "Exit" ]]
+		then
+		break
+		else
+		echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+		fi
+	done
+	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$TB_Name"_meta.db")
+	NumberOfRecords=$(awk 'END{print NR}' "LocalDBs"/$1/$TB_Name".db") 
+	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$TB_Name"_meta.db")
+
+## Changing Coloumn
+
+	while true
+	do
+		echo -e "Please Select Coloumn Value To be Updated: \n"
+		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
+
+			if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
+			then
+			echo $Col_Name
+			break 2
+			elif [[ $Col_Name == "Exit" ]]
+			then
+			break 2
+			else
+			echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+			fi
+		done
+	done
+
+
+
+	(( changing_fieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1 ))
+
+	echo -e "Enter New Value >> \c"
+	read newValue
+
+
+### Condition ###
+#Chosing Condition	
+	while true
+	do
+	echo -e "Choose Condition Coloumn \n"
+		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
+
+			if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
+			then
+			echo $Col_Name
+			break 2
+			elif [[ $Col_Name == "Exit" ]]
+			then
+			break 2
+			else
+			echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+			fi
+		done
+	done
+
+#Getting Condition Coloumn Field Number and Reading Condition Value
+	(( condition_fieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1 ))
+	echo -e "Enter Condition Value >> \c"
+	read ConditionValue
+	
+
+#Updating Value in Table 
+#	awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'")
+#{$'$changing_fieldNum'="'$newValue'"}}}' "LocalDBs"/$1/$TB_Name".db"
+
+#touch $TB_Name"_temp.db"
+
+updatedData=$(awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db") 
+# cat "LocalDBs"/$1/$TB_Name"_temp.db" > "LocalDBs"/$1/$TB_Name".db"	
+echo $updatedData > "LocalDBs"/$1/$TB_Name".db"
+	if [[ $? == 0 ]]
+	then echo -e "\nUpdated Succesfully!"
+	else 
+	echo -e"\nUpdate Failed!"
+	fi 
+
+}
+
 #########################################################################################
 #					Database Functions				#
 #########################################################################################

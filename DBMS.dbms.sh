@@ -1,10 +1,12 @@
 #! /bin/bash
 #Running header file
 source ./header.dbms.sh
-DBName="renamed"
+DBName="SecondDB"
+UpdateTable $DBName
+#InsertIntoTable $DBName
+#DeleteFromTable $DBName
 #echo -e "Enter DB Name >> \c"
 #read DBName
-
 #CreateTable $DBName
 #DropTable $DBName
 #CreateDB $DBName
