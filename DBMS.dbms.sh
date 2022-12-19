@@ -2,7 +2,7 @@
 #Running header file
 source ./header.dbms.sh
 DBName="SecondDB"
-UpdateTable $DBName
+#UpdateTable $DBName
 #InsertIntoTable $DBName
 #DeleteFromTable $DBName
 #echo -e "Enter DB Name >> \c"
@@ -15,4 +15,5 @@ UpdateTable $DBName
 #DropDB
 #RenameDB
 #ShowDBs
-
+#SelectFromTable $DBName
+SelectWithCondition $DBName
