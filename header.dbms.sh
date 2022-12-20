@@ -353,10 +353,12 @@ do
 case $choice in
 1 )
 	case $REPLY in
-	1 ) SelectAll_withCondition
+	1 ) SelectAll_withCondition | column -t -s ':'
+
 	break
 	;;
-	2 ) SelectCol_withCondition
+	2 ) SelectCol_withCondition | column -t -s ':'
+
 	break
 	;;
         * ) echo -e "Invalid Choice \c"
@@ -424,21 +426,23 @@ function SelectCol
 
 	(( FieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1 ))
 
-cat "LocalDBs"/$1/$2".db" | cut -d":" -f'$FieldNum' | column -t -s ':'
+cat "LocalDBs"/$1/$2".db" | cut -d":" -f'$FieldNum' | column -t
 
 }
 
 function SelectCol_withCondition
 {
+        FieldSep=":"
+	RecordSep="\n"
         
-	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$TB_Name"_meta.db")
+	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$2"_meta.db")
 
 ## Changing Coloumn
 
 	while true
 	do
 		echo -e "Please Select Coloumn Value To be Updated: \n"
-		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
+		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
 			then
@@ -455,7 +459,40 @@ function SelectCol_withCondition
 
 
 
-	(( FieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1 ))
+	(( FieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1 ))
+
+SelectAll_withCondition | cut -d":" -f'$FieldNum' 
+}
+function SelectAll_withCondition
+{
+        FieldSep=":"
+	RecordSep="\n"
+        
+	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$2"_meta.db")
+
+## Changing Coloumn
+
+	while true
+	do
+		echo -e "Please Select Coloumn Value To be Updated: \n"
+		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
+
+			if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
+			then
+			echo $Col_Name
+			break 2
+			elif [[ $Col_Name == "Exit" ]]
+			then
+			break 2
+			else
+			echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+			fi
+		done
+	done
+
+
+
+	(( FieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1 ))
 
 
     echo -e "\nSupported Operators: [==, !=, >, <, >=, <=] \nSelect OPERATOR: \c"
@@ -464,50 +501,21 @@ function SelectCol_withCondition
     then
       echo -e "\nEnter required VALUE: \c"
       read val
-      res=$(awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' $tName | column -t -s '|')
+      res=$(awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db" | column -t -s '|')
       if [[ $res == "" ]]
       then
         echo "Value Not Found"
-        selectCon
+        #selectCon
       else
-        awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' $tName |  column -t -s '|'
-
+    #awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db" |  column -t -s '|'
+    echo $res
       fi
     else
       echo "Unsupported Operator\n"
   
     fi
   fi
-}
-function SelectAll_withCondition
-{
-echo -e "Enter required FIELD name: \c"
-  read FieldNum
-  FieldNum=$(awk 'BEGIN{FS="|"}{if(NR==1){for(i=1;i<=NF;i++){if($i=="'$FieldNum'") print i}}}' $tName)
-  if [[ $FieldNum == "" ]]
-  then
-    echo "Not Found"
-  else
-    echo -e "Supported Operators: [==, !=, >, <, >=, <=] \nSelect OPERATOR: \c"
-    read op
-    if [[ $op == "==" ]] || [[ $op == "!=" ]] || [[ $op == ">" ]] || [[ $op == "<" ]] || [[ $op == ">=" ]] || [[ $op == "<=" ]]
-    then
-      echo -e "\nEnter required VALUE: \c"
-      read val
-      res=$(awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' $tName |  column -t -s '|')
-      if [[ $res == "" ]]
-      then
-        echo "Value Not Found"
 
-      else
-     echo $res
-
-      fi
-    else
-      echo "Unsupported Operator\n"
-
-    fi
-  fi
 }
 
 #########################################################################################
