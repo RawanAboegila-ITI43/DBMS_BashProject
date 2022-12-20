@@ -391,49 +391,53 @@ done
 function SelectAllTable
 {
 
-cat "LocalDBs"/$1/$2".db" | column -t -s '|'
+cat "LocalDBs"/$1/$2".db" | column -t -s ':'
+
 }
 function SelectCol
 {
-FieldSep=":"
-RecordSep="\n"
 
+        FieldSep=":"
+	RecordSep="\n"
 
-NumberOfRecords=$(awk 'END{print NR}' "LocalDBs"/$1/$2".db") 
-ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$2"_meta.db")
-## Changing Coloumn
-while true
-do
-	echo -e "Please Choose Coloumn Value To be Selected: \n"
-	select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
-
-	if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
-	then
-	echo $Col_Name
-	(( ColNumber=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NR;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1 ))
-	temp=`awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i==$'$ColNumber'){print $i}}}' "LocalDBs"/$1/$2".db"`
-        echo $temp
-	break 2
-	elif [[ $Col_Name == "Exit" ]]
-	then
-	break 2
-	else
-	echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
-	fi
-	done
-done
-}
-function SelectCol_withCondition
-{
-        
-	NumberOfRecords=$(awk 'END{print NR}' "LocalDBs"/$1/$2".db") 
 	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$2"_meta.db")
 
 ## Changing Coloumn
 
 	while true
 	do
-		echo -e "Please Select Coloumn: \n"
+		echo -e "Please Select Coloumn Value To be Updated: \n"
+		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
+
+			if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
+			then
+			echo $Col_Name
+			break 2
+			elif [[ $Col_Name == "Exit" ]]
+			then
+			break 2
+			else
+			echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+			fi
+		done
+	done
+
+	(( FieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1 ))
+
+cat "LocalDBs"/$1/$2".db" | cut -d":" -f'$FieldNum' | column -t -s ':'
+
+}
+
+function SelectCol_withCondition
+{
+        
+	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$TB_Name"_meta.db")
+
+## Changing Coloumn
+
+	while true
+	do
+		echo -e "Please Select Coloumn Value To be Updated: \n"
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
@@ -449,14 +453,11 @@ function SelectCol_withCondition
 		done
 	done
 
-echo -e "Enter required FIELD name: \c"
-  read FieldNum
-  FieldNum=$(awk 'BEGIN{FS="|"}{if(NR==1){for(i=1;i<=NF;i++){if($i=="'$FieldNum'") print i}}}' $tName)
-  if [[ $FieldNum == "" ]]
-  then
-    echo "Not Found"
-    selectCon
-  else
+
+
+	(( FieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1 ))
+
+
     echo -e "\nSupported Operators: [==, !=, >, <, >=, <=] \nSelect OPERATOR: \c"
     read op
     if [[ $op == "==" ]] || [[ $op == "!=" ]] || [[ $op == ">" ]] || [[ $op == "<" ]] || [[ $op == ">=" ]] || [[ $op == "<=" ]]
@@ -469,7 +470,7 @@ echo -e "Enter required FIELD name: \c"
         echo "Value Not Found"
         selectCon
       else
-        awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' $tName 2>>./.error.log |  column -t -s '|'
+        awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' $tName |  column -t -s '|'
 
       fi
     else
@@ -499,7 +500,7 @@ echo -e "Enter required FIELD name: \c"
         echo "Value Not Found"
 
       else
-        awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' $tName |  column -t -s '|'
+     echo $res
 
       fi
     else
