@@ -365,91 +365,69 @@ RecordSep="\n"
 
 select TB_Name in $(ls LocalDBs/$1 | grep  '.meta.db$' | cut -d "_" -f1) "Exit"; do
 
-				if [[ $TB_Name != "Exit" ]] && (( $REPLY <= $numberOfChoices ))
-				then
-				echo $TB_Name
-				break
-				elif [[ $TB_Name == "Exit" ]]
-				then
-				break
-				else
-				echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
-				fi
+	if [[ $TB_Name != "Exit" ]] && (( $REPLY <= $numberOfChoices ))
+	then
+	echo $TB_Name
+	break
+	elif [[ $TB_Name == "Exit" ]]
+	then
+	break
+	else
+	echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+	fi
 done
 
 cat "LocalDBs"/$1/$TB_Name".db"
 		 
 }
-
-function SelectWithCondition {
+function SelectCol
+{
 FieldSep=":"
 RecordSep="\n"
 ((numberOfChoices=$(ls LocalDBs/$1 | grep -c  '._meta.db$') + 1 ))
 
 select TB_Name in $(ls LocalDBs/$1 | grep  '.meta.db$' | cut -d "_" -f1) "Exit"; do
 
-						if [[ $TB_Name != "Exit" ]] && (( $REPLY <= $numberOfChoices ))
-						then
-						echo $TB_Name
-						break
-						elif [[ $TB_Name == "Exit" ]]
-						then
-						break
-						else
-						echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
-						fi
+	if [[ $TB_Name != "Exit" ]] && (( $REPLY <= $numberOfChoices ))
+	then
+	echo $TB_Name
+	break
+	elif [[ $TB_Name == "Exit" ]]
+	then
+	break
+	else
+	echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+	fi
 done
-							ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$TB_Name"_meta.db")
-							NumberOfRecords=$(awk 'END{print NR}' "LocalDBs"/$1/$TB_Name".db") 
-							#ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$TB_Name"_meta.db")
 
-						## Changing Coloumn
+ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$TB_Name"_meta.db")
+NumberOfRecords=$(awk 'END{print NR}' "LocalDBs"/$1/$TB_Name".db") 
+## Changing Coloumn
+while true
+do
+	echo -e "Please Choose Coloumn Value To be Selected: \n"
+	select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
 
-							while true
-							do
-								echo -e "Please Choose Coloumn Value To be Selected: \n"
-								select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
+	if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
+	then
+	echo $Col_Name
+	(( ColNumber=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1 ))
+	temp=`awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NR;i++){if($i==$'$ColNumber'){print $i}}' "LocalDBs"/$1/$TB_Name".db"`
+        echo $temp
+	break 2
+	elif [[ $Col_Name == "Exit" ]]
+	then
+	break 2
+	else
+	echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
+	fi
+	done
+done
 
-									if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
-									then
-									echo $Col_Name
-									break 2
-									elif [[ $Col_Name == "Exit" ]]
-									then
-									break 2
-									else
-									echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
-									fi
-								done
-							done
-
-						    (( changing_fieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1 ))
-
-						#Chosing Condition      
-							while true
-							do
-							echo -e "Choose Condition Coloumn \n"
-								select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db"|cut -d "$FieldSep" -f1) "Exit"; do
-
-									if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
-									then
-									echo $Col_Name
-									break 2
-									elif [[ $Col_Name == "Exit" ]]
-									then
-									break 2
-									else
-									echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
-									fi
-								done
-							done
-
-						#Getting Condition Coloumn Field Number and Reading Condition Value
-							(( condition_fieldNum=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1 ))
-							echo -e "Enter Condition Value >> \c"
-							read ConditionValue
-                                                        awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'") {print $0;}}}' "LocalDBs"/$1/$TB_Name".db"
-                                                             
+						    
+}
+function SelectWithCondition {
+                                            
 }
 
 #########################################################################################

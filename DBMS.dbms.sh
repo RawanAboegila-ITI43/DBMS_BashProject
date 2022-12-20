@@ -16,4 +16,5 @@ DBName="SecondDB"
 #RenameDB
 #ShowDBs
 #SelectFromTable $DBName
-SelectWithCondition $DBName
+#SelectWithCondition $DBName
+SelectCol $DBName
