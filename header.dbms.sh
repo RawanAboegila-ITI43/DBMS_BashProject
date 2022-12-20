@@ -411,8 +411,8 @@ do
 	if [[ $Col_Name != "Exit" ]] && (( $REPLY <= $ColNum ))
 	then
 	echo $Col_Name
-	(( ColNumber=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1 ))
-	temp=`awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NR;i++){if($i==$'$ColNumber'){print $i}}' "LocalDBs"/$1/$TB_Name".db"`
+	(( ColNumber=$(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NR;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1 ))
+	temp=`awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i==$'$ColNumber'){print $i}}}' "LocalDBs"/$1/$TB_Name".db"`
         echo $temp
 	break 2
 	elif [[ $Col_Name == "Exit" ]]
@@ -426,9 +426,9 @@ done
 
 						    
 }
-function SelectWithCondition {
+#function SelectWithCondition {
                                             
-}
+#}
 
 #########################################################################################
 #					Database Functions				#
