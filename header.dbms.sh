@@ -307,17 +307,17 @@ function UpdateTable {
 
 	echo -e "\nSupported Operators: \n"
 
-	if [[ $ColType=="varchar" ]]; then
+	if [[ $ColType == "varchar" ]]; then
 		echo -e "1: ==\t2: !=\t3: Go Back!\n"
 		echo -e "\nSelect OPERATOR: \c"
-		read op
+		read opChoice
 
-		case $op in
+		case $opChoice in
 		1)
-			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			op="=="
 			;;
 		2)
-			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'!="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			op="!="
 			;;
 		3) #prev Menu
 			;;
@@ -329,42 +329,44 @@ function UpdateTable {
 	else
 		echo -e "1: ==\t2: !=\t3: >\t4: <\t5: >=\t6: <=\t7: Go Back!\n"
 		echo -e "\nSelect OPERATOR: \c"
-		read op
+		read opChoice
 
-		case $op in
+		case $opChoice in
 		1)
-			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			op="=="
 			;;
 		2)
-			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'!="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			op="!="
 			;;
 		3)
-			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'>"'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			op=">"
 			;;
 		4)
-			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'<"'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			op="<"
 			;;
 		5)
-			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'>="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			op=">="
 			;;
 		6)
-			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'<="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			op="<="
 			;;
 		7)
+
 			echo -e "Going Back\n"
 			#prev Menu
 
 			;;
 		*)
+
 			echo -e "Invalid Operator\n"
 			;;
 		esac
 
 	fi
 
-	# Updating Value in Table
+	awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum''$op'"'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
 
-	awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+	# Updating Value in Table
 
 	cat "LocalDBs"/$1/$TB_Name"_temp.db" >"LocalDBs"/$1/$TB_Name".db"
 
