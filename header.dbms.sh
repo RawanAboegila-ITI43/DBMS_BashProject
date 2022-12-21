@@ -12,8 +12,7 @@ function CreateTable {
 		echo "Table already exist"
 		#callmenufun
 	else
-		touch "LocalDBs"/$1/$tableName"_meta.db"
-		touch "LocalDBs"/$1/$tableName".db"
+
 		echo -e "Enter Number of Columns: \c"
 		read ColNum
 		FieldSep=":"
@@ -77,7 +76,12 @@ function CreateTable {
 
 		echo -e "\n Printing data!"
 
+		touch "LocalDBs"/$1/$tableName"_meta.db"
+		touch "LocalDBs"/$1/$tableName".db"
+
 		echo -e $meta >>"LocalDBs"/$1/$tableName"_meta.db"
+
+		#return $tableName
 
 	fi
 	#displayMenu
@@ -103,12 +107,17 @@ function InsertIntoTable {
 
 	((numberOfChoices = $(ls LocalDBs/$1 | grep -c '._meta.db$') + 1))
 
-	select TB_Name in $(ls LocalDBs/$1 | grep '._meta.db$' | cut -d "_" -f1) "Exit"; do
+	select choice in $(ls LocalDBs/$1 | grep '._meta.db$' | cut -d "_" -f1) "New" "Exit"; do
 
-		if [[ $TB_Name != "Exit" ]] && (($REPLY <= $numberOfChoices)); then
-			echo $TB_Name
+		if [[ $choice != "Exit" ]] && [[ $choice != "New" ]] && (($REPLY <= $numberOfChoices)); then
+			TB_Name=$choice
+			echo -e $TB_Name "selected succesfully!\n"
 			break
-		elif [[ $TB_Name == "Exit" ]]; then
+		elif [[ $choice == "New" ]]; then
+			CreateTable $1
+			TB_Name=$tableName
+			break
+		elif [[ $choice == "Exit" ]]; then
 			break
 		else
 			echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
@@ -325,18 +334,20 @@ function SelectFromTable {
 		fi
 	done
 
-	select choice in "1- Query With Where Condition" "2- Query Without Where Condition" "Exit"; do
-		case $choice in
+	select choice in "Query With Where Condition" "Query Without Where Condition" "Exit"; do
+		case $REPLY in
 		1)
-			case $REPLY in
+			echo -e "1: Select All\t2: Select Coloumn\n>>\c"
+			read mini
+			case $mini in
 			1)
-				SelectAll_withCondition $1 $TB_Name | column -t -s ':'
+				SelectAll_withCondition $1 $TB_Name
+				#| column -t -s ':'
 
 				break
 				;;
 			2)
-				SelectCol_withCondition $1 $TB_Name | column -t -s ':'
-
+				SelectCol_withCondition $1 $TB_Name
 				break
 				;;
 			*)
@@ -347,7 +358,9 @@ function SelectFromTable {
 			break
 			;;
 		2)
-			case $REPLY in
+			echo -e "1: Select All\t2: Select Coloumn\n>>\c"
+			read mini
+			case $mini in
 			1)
 				SelectAllTable $1 $TB_Name
 				break
@@ -404,11 +417,12 @@ function SelectCol {
 
 	((FieldNum = $(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1))
 
-	cat "LocalDBs"/$1/$2".db" | cut -d":" -f'$FieldNum' | column -t
+	cat "LocalDBs"/$1/$2".db" | cut -d":" -f"$FieldNum" | column -t
 
 }
 
 function SelectCol_withCondition {
+	echo -e "SelectCol_withCondition\n"
 	FieldSep=":"
 	RecordSep="\n"
 
@@ -417,7 +431,8 @@ function SelectCol_withCondition {
 	## Changing Coloumn
 
 	while true; do
-		echo -e "Please Select Coloumn Value To be Updated: \n"
+		echo -e "In While!\n"
+		echo -e "Please Select Coloumn To View: \n"
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (($REPLY <= $ColNum)); then
@@ -432,11 +447,13 @@ function SelectCol_withCondition {
 	done
 
 	((FieldNum = $(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1))
+	echo $FieldNum
 
-	SelectAll_withCondition | cut -d":" -f'$FieldNum'
+	SelectAll_withCondition $1 $2 | cut -d":" -f"$FieldNum"
 }
 
 function SelectAll_withCondition {
+	echo -e "SelectAll_withCondition\n"
 	FieldSep=":"
 	RecordSep="\n"
 
@@ -445,7 +462,8 @@ function SelectAll_withCondition {
 	## Changing Coloumn
 
 	while true; do
-		echo -e "Please Select Coloumn Value To be Updated: \n"
+		echo -e "In While!\n"
+		echo -e "Please Select Condition Coloumn \: \n"
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (($REPLY <= $ColNum)); then
@@ -460,18 +478,22 @@ function SelectAll_withCondition {
 	done
 
 	((FieldNum = $(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1))
+	echo $FieldNum
 
 	echo -e "\nSupported Operators: [==, !=, >, <, >=, <=] \nSelect OPERATOR: \c"
 	read op
 	if [[ $op == "==" ]] || [[ $op == "!=" ]] || [[ $op == ">" ]] || [[ $op == "<" ]] || [[ $op == ">=" ]] || [[ $op == "<=" ]]; then
 		echo -e "\nEnter required VALUE: \c"
 		read val
-		res=$(awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db" | column -t -s '|')
+		#awk 'BEGIN{FS=":"; ORS="\n"}{if ($'$FieldNum''$op''$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db"
+
+		res=$(awk 'BEGIN{FS=":"; ORS="\n"}{if ($'$FieldNum''$op'"'$val'") print $'$FieldNum'}' "LocalDBs"/$1/$2".db")
 		if [[ $res == "" ]]; then
 			echo "Value Not Found"
 			#selectCon
 		else
 			#awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db" |  column -t -s '|'
+			echo -e "OUTPUT!\n"
 			echo $res
 		fi
 	else

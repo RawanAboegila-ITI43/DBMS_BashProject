@@ -1,15 +1,16 @@
 #! /bin/bash
 #Running header file
 source ./header.dbms.sh
-DBName="SecondDB"
-SelectFromTable $DBName
+#DBName="SecondDB"
+SelectDB
+SelectFromTable $DB_Name
 #UpdateTable $DBName
-#InsertIntoTable $DBName
+#InsertIntoTable $DB_Name
 #DeleteFromTable $DBName
 #echo -e "Enter DB Name >> \c"
 #read DBName
 #CreateTable $DBName
-#DropTable $DBName
+#DropTable $DB_Name
 #CreateDB $DBName
 #SelectDB
 #echo $DB_Name
@@ -18,4 +19,4 @@ SelectFromTable $DBName
 #ShowDBs
 #SelectFromTable $DBName
 #SelectWithCondition $DBName
-SelectCol $DBName
+#SelectCol $DBName
