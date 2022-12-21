@@ -449,7 +449,12 @@ function SelectCol_withCondition {
 	((FieldNum = $(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1))
 	echo $FieldNum
 
-	SelectAll_withCondition $1 $2 | cut -d":" -f"$FieldNum"
+	#touch "LocalDBs"/$1/"edit.db"
+
+	SelectAll_withCondition $1 $2
+	#$(SelectAll_withCondition $1 $2) >>"LocalDBs"/$1/"edit.db"
+	cat "LocalDBs"/$1/"edit.db" | cut -d":" -f"$FieldNum"
+	#echo $colRes | cut -d":" -f"$FieldNum"
 }
 
 function SelectAll_withCondition {
@@ -487,14 +492,15 @@ function SelectAll_withCondition {
 		read val
 		#awk 'BEGIN{FS=":"; ORS="\n"}{if ($'$FieldNum''$op''$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db"
 
-		res=$(awk 'BEGIN{FS=":"; ORS="\n"}{if ($'$FieldNum''$op'"'$val'") print $'$FieldNum'}' "LocalDBs"/$1/$2".db")
+		res=$(awk 'BEGIN{FS=":"; ORS="\n"}{if ($'$FieldNum''$op'"'$val'") print $0}' "LocalDBs"/$1/$2".db")
 		if [[ $res == "" ]]; then
 			echo "Value Not Found"
 			#selectCon
 		else
 			#awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db" |  column -t -s '|'
 			echo -e "OUTPUT!\n"
-			echo $res
+			echo $res >"LocalDBs"/$1/"edit.db"
+			#return $res
 		fi
 	else
 		echo "Unsupported Operator\n"
