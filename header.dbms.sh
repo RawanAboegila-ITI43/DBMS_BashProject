@@ -295,27 +295,83 @@ function UpdateTable {
 	done
 
 	#Getting Condition Coloumn Field Number and Reading Condition Value
+
 	((condition_fieldNum = $(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$TB_Name"_meta.db") - 1))
 	echo -e "Enter Condition Value >> \c"
 	read ConditionValue
+	####################
+	touch "LocalDBs"/$1/$TB_Name"_temp.db"
+	#ColName=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+1))) print $1}' "LocalDBs"/$1/$TB_Name"_meta.db")
+	ColType=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $2}' "LocalDBs"/$1/$TB_Name"_meta.db")
+	#ColPK=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $3}' "LocalDBs"/$1/$TB_Name"_meta.db")
+
+	echo -e "\nSupported Operators: \n"
+
+	if [[ $ColType=="varchar" ]]; then
+		echo -e "1: ==\t2: !=\t3: Go Back!\n"
+		echo -e "\nSelect OPERATOR: \c"
+		read op
+
+		case $op in
+		1)
+			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			;;
+		2)
+			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'!="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			;;
+		3) #prev Menu
+			;;
+		*)
+			echo -e "Invalid Operator\n"
+			;;
+		esac
+
+	else
+		echo -e "1: ==\t2: !=\t3: >\t4: <\t5: >=\t6: <=\t7: Go Back!\n"
+		echo -e "\nSelect OPERATOR: \c"
+		read op
+
+		case $op in
+		1)
+			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			;;
+		2)
+			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'!="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			;;
+		3)
+			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'>"'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			;;
+		4)
+			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'<"'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			;;
+		5)
+			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'>="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			;;
+		6)
+			awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'<="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
+			;;
+		7)
+			echo -e "Going Back\n"
+			#prev Menu
+
+			;;
+		*)
+			echo -e "Invalid Operator\n"
+			;;
+		esac
+
+	fi
 
 	# Updating Value in Table
-	# awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'")
 
-	# {$'$changing_fieldNum'="'$newValue'"}}}' "LocalDBs"/$1/$TB_Name".db"
+	awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db" >"LocalDBs"/$1/$TB_Name"_temp.db"
 
-	# touch $TB_Name"_temp.db"
+	cat "LocalDBs"/$1/$TB_Name"_temp.db" >"LocalDBs"/$1/$TB_Name".db"
 
-	awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db"
-
-	updatedData=$(awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db")
-
-	# cat "LocalDBs"/$1/$TB_Name"_temp.db" > "LocalDBs"/$1/$TB_Name".db"
-	echo $updatedData >"LocalDBs"/$1/$TB_Name".db"
 	if [[ $? == 0 ]]; then
 		echo -e "\nUpdated Succesfully!"
 	else
-		echo -e"\nUpdate Failed!"
+		echo -e "\nUpdate Failed!"
 	fi
 
 }
