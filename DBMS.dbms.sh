@@ -1,35 +1,92 @@
 #! /bin/bash
 
-### Colors ##
-ESC=$(printf '\033') RESET="${ESC}[0m" BLACK="${ESC}[30m" RED="${ESC}[31m"
-GREEN="${ESC}[32m" YELLOW="${ESC}[33m" BLUE="${ESC}[34m" MAGENTA="${ESC}[35m"
-CYAN="${ESC}[36m" WHITE="${ESC}[37m" DEFAULT="${ESC}[39m"
-
-### Color Functions ##
-
-greenprint() { printf "${GREEN}%s${RESET}\n" "$1"; }
-blueprint() { printf "${BLUE}%s${RESET}\n" "$1"; }
-redprint() { printf "${RED}%s${RESET}\n" "$1"; }
-yellowprint() { printf "${YELLOW}%s${RESET}\n" "$1"; }
-magentaprint() { printf "${MAGENTA}%s${RESET}\n" "$1"; }
-cyanprint() { printf "${CYAN}%s${RESET}\n" "$1"; }
-
-
-### Menu Welcome And Exit Functions ###
-
-
-#Running header file
+#Running header files
+source ./style.dbms.sh
 source ./header.dbms.sh
 
 #Global Variables
 DB_Name=""
 
-function DatabaseMenu{
-
-
-
+### Menu Welcome And Exit Functions ###
+function WelcomeMessage {
+    styleOutput $YELLOW $BLACK "Welcome To Our DBMS!\n"
 
 }
+
+function ExitMessage {
+    #rmcup
+    clear
+    MiddlePrint 0 0
+    styleOutput $YELLOW $BLACK "It's Been Fun ;)"
+    MiddlePrint 1 0
+    styleOutput $YELLOW $BLACK "BYE BYE!"
+}
+
+function DatabaseMenu {
+    rmcup
+    clear
+    MiddlePrint -15 -15
+    styleOutput 0 $YELLOW "____________________________________________"
+    MiddlePrint -12 0
+    WelcomeMessage
+    MiddlePrint -10 -15
+    styleOutput 0 $YELLOW "____________________________________________"
+
+    MiddlePrint -7 -2
+    styleOutput $YELLOW $DEFAULT_BK "1: List Databases"
+    MiddlePrint -6 -2
+    styleOutput $YELLOW $DEFAULT_BK "2: Create Database"
+    MiddlePrint -5 -2
+    styleOutput $YELLOW $DEFAULT_BK "3: Connect Database"
+    MiddlePrint -4 -2
+    styleOutput $YELLOW $DEFAULT_BK "4: Rename Database"
+    MiddlePrint -3 -2
+    styleOutput $YELLOW $DEFAULT_BK "5: Drop Database"
+    MiddlePrint -2 -2
+    styleOutput $YELLOW $DEFAULT_BK "6: Exit"
+    MiddlePrint 1 -2
+    styleOutput $BLUE $WHITE ">> \c"
+    tput setab $BLUE
+    tput setaf $WHITE
+    read MainMenuChoice
+    tput sgr0
+
+    case $MainMenuChoice in
+    1)
+        clear
+        ShowDBs
+        ;;
+    2)
+        clear
+        CreateDB
+        ;;
+
+    3)
+        clear
+        SelectDB
+        ;;
+
+    4)
+        clear
+        RenameDB
+        ;;
+
+    5)
+        clear
+        DropDB
+        ;;
+
+    6)
+        ExitMessage
+        exit 0
+        ;;
+
+    esac
+
+}
+
+DatabaseMenu
+
 #DB_Name="SecondDB"
 #SelectDB
 #clear
