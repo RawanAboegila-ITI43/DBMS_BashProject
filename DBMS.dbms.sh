@@ -2,6 +2,7 @@
 #Running header file
 source ./header.dbms.sh
 DBName="SecondDB"
+SelectFromTable $DBName
 #UpdateTable $DBName
 #InsertIntoTable $DBName
 #DeleteFromTable $DBName
@@ -10,7 +11,7 @@ DBName="SecondDB"
 #CreateTable $DBName
 #DropTable $DBName
 #CreateDB $DBName
-#SelectDB 
+#SelectDB
 #echo $DB_Name
 #DropDB
 #RenameDB
