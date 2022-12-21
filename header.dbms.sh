@@ -1,6 +1,13 @@
 #! /bin/bash
 
 #########################################################################################
+#					Global Variables					#
+#########################################################################################
+
+FieldSep=":"
+RecordSep="\n"
+
+#########################################################################################
 #					Table Functions					#
 #########################################################################################
 
@@ -102,9 +109,6 @@ function DropTable {
 
 function InsertIntoTable {
 
-	FieldSep=":"
-	RecordSep="\n"
-
 	((numberOfChoices = $(ls LocalDBs/$1 | grep -c '._meta.db$') + 1))
 
 	select choice in $(ls LocalDBs/$1 | grep '._meta.db$' | cut -d "_" -f1) "New" "Exit"; do
@@ -177,8 +181,6 @@ function InsertIntoTable {
 }
 
 function DeleteFromTable {
-	FieldSep=":"
-	RecordSep="\n"
 
 	((numberOfChoices = $(ls LocalDBs/$1 | grep -c '._meta.db$') + 1))
 
@@ -197,6 +199,7 @@ function DeleteFromTable {
 	done
 
 	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$TB_Name"_meta.db")
+
 	while true; do
 		echo -e "Choose Condition Coloumn \n"
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
@@ -216,8 +219,74 @@ function DeleteFromTable {
 
 	echo -e "Enter Condition Value >> \c"
 	read ConditionValue
+	################################################33
 
-	oldValue=$(awk 'BEGIN{FS="'$FieldSep'"}{if($'$fieldNum'=="'$ConditionValue'") print NR}' "LocalDBs"/$1/$TB_Name".db")
+	ColType=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $2}' "LocalDBs"/$1/$TB_Name"_meta.db")
+	#ColPK=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $3}' "LocalDBs"/$1/$TB_Name"_meta.db")
+
+	echo -e "\nSupported Operators: \n"
+
+	if [[ $ColType == "varchar" ]]; then
+		echo -e "1: ==\t2: !=\t3: Go Back!\n"
+		echo -e "\nSelect OPERATOR: \c"
+		read opChoice
+
+		case $opChoice in
+		1)
+			op="=="
+			;;
+		2)
+			op="!="
+			;;
+		3) #prev Menu
+			;;
+		*)
+			echo -e "Invalid Operator\n"
+			;;
+		esac
+
+	else
+		echo -e "1: ==\t2: !=\t3: >\t4: <\t5: >=\t6: <=\t7: Go Back!\n"
+		echo -e "\nSelect OPERATOR: \c"
+		read opChoice
+
+		case $opChoice in
+		1)
+			op="=="
+			;;
+		2)
+			op="!="
+			;;
+		3)
+			op=">"
+			;;
+		4)
+			op="<"
+			;;
+		5)
+			op=">="
+			;;
+		6)
+			op="<="
+			;;
+		7)
+
+			echo -e "Going Back\n"
+			#prev Menu
+
+			;;
+		*)
+
+			echo -e "Invalid Operator\n"
+			;;
+		esac
+
+	fi
+
+	oldValue=$(awk 'BEGIN{FS="'$FieldSep'"}{if($'$fieldNum''$op'"'$ConditionValue'") print NR}' "LocalDBs"/$1/$TB_Name".db")
+
+	#######################################################3
+	#oldValue=$(awk 'BEGIN{FS="'$FieldSep'"}{if($'$fieldNum'=="'$ConditionValue'") print NR}' "LocalDBs"/$1/$TB_Name".db")
 
 	if [[ -z $oldValue ]]; then
 		echo -e "value not found!\n"
@@ -234,9 +303,6 @@ function DeleteFromTable {
 }
 
 function UpdateTable {
-
-	FieldSep=":"
-	RecordSep="\n"
 
 	((numberOfChoices = $(ls LocalDBs/$1 | grep -c '._meta.db$') + 1))
 
@@ -454,9 +520,6 @@ function SelectAllTable {
 }
 function SelectCol {
 
-	FieldSep=":"
-	RecordSep="\n"
-
 	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$2"_meta.db")
 
 	## Changing Coloumn
@@ -484,8 +547,6 @@ function SelectCol {
 
 function SelectCol_withCondition {
 	echo -e "SelectCol_withCondition\n"
-	FieldSep=":"
-	RecordSep="\n"
 
 	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$2"_meta.db")
 
@@ -519,8 +580,6 @@ function SelectCol_withCondition {
 
 function SelectAll_withCondition {
 	echo -e "SelectAll_withCondition\n"
-	FieldSep=":"
-	RecordSep="\n"
 
 	ColNum=$(awk 'END{print NR-1}' "LocalDBs"/$1/$2"_meta.db")
 
@@ -619,6 +678,7 @@ function SelectDB {
 	done
 
 	export DB_Name
+	#function Menu Table
 }
 
 function RenameDB {
