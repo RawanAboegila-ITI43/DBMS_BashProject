@@ -14,95 +14,105 @@ RecordSep="\n"
 function CreateTable {
 	echo -e "Enter Tablename: \c"
 	read tableName
+	if ! [[ "$tableName" =~ [[:punct:]] || "$tableName" =~ [[:digit:]] || "$tableName" =~ [[:space:]] || -z "$tableName" ]]; then
 
-	if [ -f "LocalDBs"/$1/$tableName"_meta.db" ]; then
-		echo "Table already exist"
-		#callmenufun
-	else
+		if [ -f "LocalDBs"/$1/$tableName"_meta.db" ]; then
+			echo "Table already exist"
+			TableMenu
+		else
 
-		echo -e "Enter Number of Columns: \c"
-		read ColNum
-		FieldSep=":"
-		RecordSep="\n"
-		PK=""
-		meta="Field"$FieldSep"Type"$FieldSep"Key"
-		ColType=""
-		for ((i = 1; i <= $ColNum; i++)); do
-			echo -e "\n\nEnter Column #$i Name: \c"
-			read ColName
-			echo -e "\nEnter Column Type: "
-			while true; do
-				select choice in "int" "varchar"; do
-					case $REPLY in
-					1)
-						ColType="int"
-						break 2
-						;;
+			echo -e "Enter Number of Columns: \c"
+			read ColNum
+			if ! [ -z "$ColNum" ]; then
 
-					2)
-						ColType="varchar"
-						break 2
-						;;
+				FieldSep=":"
+				RecordSep="\n"
+				PK=""
+				meta="Field"$FieldSep"Type"$FieldSep"Key"
+				ColType=""
 
-					*)
-						echo "invalid choice"
-						;;
-					esac
-				done
-			done
+				for ((i = 1; i <= $ColNum; i++)); do
+					echo -e "\n\nEnter Column #$i Name: \c"
+					read ColName
+					echo -e "\nEnter Column Type: "
+					while true; do
+						select choice in "int" "varchar"; do
+							case $REPLY in
+							1)
+								ColType="int"
+								break 2
+								;;
 
-			if [[ -z $PK || $PK == "0" ]]; then
+							2)
+								ColType="varchar"
+								break 2
+								;;
 
-				echo -e "\nIs it Primary Key?"
+							*)
+								echo "invalid choice"
+								;;
+							esac
+						done
+					done
 
-				while true; do
-					echo -e " 1 : YES , 2 : No >> \c"
-					read choice
-					case $choice in
-					1)
-						PK="1"
-						meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"1"
-						break
-						;;
-					2)
-						PK="0"
+					if [[ -z $PK || $PK == "0" ]]; then
+
+						echo -e "\nIs it Primary Key?"
+
+						while true; do
+							echo -e " 1 : YES , 2 : No >> \c"
+							read choice
+							case $choice in
+							1)
+								PK="1"
+								meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"1"
+								break
+								;;
+							2)
+								PK="0"
+								meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"0"
+								break
+								;;
+							*)
+								echo "invalid choice"
+								;;
+							esac
+						done
+
+					else
 						meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"0"
-						break
-						;;
-					*)
-						echo "invalid choice"
-						;;
-					esac
+					fi
+
 				done
-
 			else
-				meta=$meta$RecordSep$ColName$FieldSep$ColType$FieldSep"0"
+				echo -e "NO Col Number Entered \n"
 			fi
-
-		done
-
-		echo -e "\n Printing data!"
-
-		touch "LocalDBs"/$1/$tableName"_meta.db"
-		touch "LocalDBs"/$1/$tableName".db"
-
-		echo -e $meta >>"LocalDBs"/$1/$tableName"_meta.db"
-
-		#return $tableName
-
+			echo -e "\n Printing data!"
+			touch "LocalDBs"/$1/$tableName"_meta.db"
+			touch "LocalDBs"/$1/$tableName".db"
+			echo -e $meta >>"LocalDBs"/$1/$tableName"_meta.db"
+		fi
+	else
+		echo -e "Enter a valid Table Name: \n"
 	fi
-	#displayMenu
+
+	TableMenu
 }
 
 function DropTable {
 	echo -e "Enter Table Name To Be Deleted: \c"
 	read tableName
-	if [ -f "LocalDBs"/$1/$tableName"_meta.db" ]; then
-		rm -i "LocalDBs"/$1/$tableName"_meta.db"
-		rm -i "LocalDBs"/$1/$tableName".db"
-	else
-		echo "Table doesn't exist"
+	if ! [ -z $tableName ]; then
+		if [ -f "LocalDBs"/$1/$tableName"_meta.db" ]; then
+			rm -i "LocalDBs"/$1/$tableName"_meta.db"
+			rm -i "LocalDBs"/$1/$tableName".db"
+		else
+			echo "Table doesn't exist"
 
+		fi
+	else
+		echo "No Table Name Entered"
+		TableMenu
 	fi
 
 }
@@ -177,7 +187,13 @@ function InsertIntoTable {
 		echo "Error Inserting Data Into Table $TB_Name"
 	fi
 	row=""
-	# tables Menu
+	TableMenu
+}
+
+function ShowTables {
+
+	ls LocalDBs/$1 | grep '._meta.db$' | cut -d "_" -f1
+
 }
 
 function DeleteFromTable {
@@ -219,7 +235,7 @@ function DeleteFromTable {
 
 	echo -e "Enter Condition Value >> \c"
 	read ConditionValue
-	################################################33
+	################################################
 
 	ColType=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $2}' "LocalDBs"/$1/$TB_Name"_meta.db")
 	#ColPK=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $3}' "LocalDBs"/$1/$TB_Name"_meta.db")
@@ -238,7 +254,8 @@ function DeleteFromTable {
 		2)
 			op="!="
 			;;
-		3) #prev Menu
+		3)
+			SelectFromTable
 			;;
 		*)
 			echo -e "Invalid Operator\n"
@@ -270,10 +287,7 @@ function DeleteFromTable {
 			op="<="
 			;;
 		7)
-
-			echo -e "Going Back\n"
-			#prev Menu
-
+			SelectFromTable
 			;;
 		*)
 
@@ -385,7 +399,8 @@ function UpdateTable {
 		2)
 			op="!="
 			;;
-		3) #prev Menu
+		3)
+			SelectFromTable
 			;;
 		*)
 			echo -e "Invalid Operator\n"
@@ -418,9 +433,7 @@ function UpdateTable {
 			;;
 		7)
 
-			echo -e "Going Back\n"
-			#prev Menu
-
+			SelectFromTable
 			;;
 		*)
 
@@ -503,7 +516,8 @@ function SelectFromTable {
 			esac
 			break
 			;;
-		3) #tablemenu
+		3)
+			TableMenu
 			break
 			;;
 		*)
@@ -571,8 +585,6 @@ function SelectCol_withCondition {
 	((ViewingColoumn = $(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1))
 	echo $ViewingColoumn
 
-	#touch "LocalDBs"/$1/"edit.db"
-
 	SelectAll_withCondition $1 $2
 	#cat "LocalDBs"/$1/"select_temp.db" | cut -d":" -f"$ViewingColoumn"
 
@@ -618,7 +630,7 @@ function SelectAll_withCondition {
 			#selectCon
 		else
 			#awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db" |  column -t -s '|'
-			echo -e "OUTPUT!\n"
+
 			echo $res >"LocalDBs"/$1/"select_temp.db"
 			#return $res
 		fi
@@ -634,23 +646,25 @@ function SelectAll_withCondition {
 #########################################################################################
 
 function CreateDB {
-	#while true
-	#do
-	if [ -d "LocalDBs"/$1 ]; then
-		echo "DB already exists"
-		#echo -e "Exit? [y|N]\c"
-		#read choice
-		#echo $choice
-		#elif [ $choice == y ]
-		#then
-		#echo ineflif
-		#break
-	else
-		mkdir "LocalDBs"/$1
-		echo $1 >>local_DBMS.dbms
-	#break
-	fi
-	#done
+
+	while true; do
+		echo -e "Enter DB Name: \n"
+		read DBName
+		if ! [[ "$DBName" =~ [[:punct:]] || "$DBName" =~ [[:digit:]] || "$DBName" =~ [[:space:]] ]]; then
+			if [ -d "LocalDBs"/$DBName ]; then
+				echo "DB already exists"
+			else
+				mkdir "LocalDBs"/$DBName
+				echo $DBName >>local_DBMS.dbms
+				break
+
+			fi
+
+		else
+			echo -e "Enter a valid DB Name \n"
+
+		fi
+	done
 }
 
 function SelectDB {
@@ -678,7 +692,7 @@ function SelectDB {
 	done
 
 	export DB_Name
-	#function Menu Table
+	TableMenu
 }
 
 function RenameDB {
@@ -692,15 +706,20 @@ function RenameDB {
 		if [[ $DB_Name != "Exit" ]]; then
 			echo -e "Enter New Name >> \c"
 			read newName
-			mv LocalDBs/$DB_Name LocalDBs/$newName
-			sed -i "s/$DB_Name/$newName/" "local_DBMS.dbms"
-			break
+			if ! [[ "$newName" =~ [[:punct:]] || "$newName" =~ [[:digit:]] || "$newName" =~ [[:digit:]] ]]; then
+				mv LocalDBs/$DB_Name LocalDBs/$newName
+				sed -i "s/$DB_Name/$newName/" "local_DBMS.dbms"
+				break
+			else
+				echo -e "Enter a Valid DB Name \n"
+			fi
 		elif [[ $DB_Name == "Exit" ]]; then
 			break
 		else
 			echo -e "Invalid Choice!\n Choose A Valid One!\n"
 		fi
 	done
+
 }
 
 function DropDB {
@@ -718,4 +737,5 @@ function ShowDBs {
 	echo -e "\nLocal Databases: \n"
 	awk '{print NR "-",$0}' local_DBMS.dbms
 	echo -e "\n"
+
 }

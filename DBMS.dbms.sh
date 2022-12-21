@@ -89,13 +89,15 @@ function DatabaseMenu {
             MiddlePrint 3 -2
             styleOutput $RED $BLACK "Invalid Input!\n"
             echo $st_Standout
-            MiddlePrint 4 -2
-            styleOutput $RED $BLACK "Enter Any Key To Continue!\n"
-            echo $end_Standout
-            read
+
             ;;
 
         esac
+
+        MiddlePrint 4 -2
+        styleOutput $RED $BLACK "Enter Any Key To Continue!\n"
+        echo $end_Standout
+        read
     done
 
 }
@@ -138,7 +140,7 @@ function TableMenu {
         case $MainMenuChoice in
         1)
             clear
-            #ShowTables
+            ShowTables $DB_Name
             ;;
         2)
             clear
@@ -178,19 +180,24 @@ function TableMenu {
             MiddlePrint 5 -2
             styleOutput $RED $BLACK "Invalid Input!\n"
             echo $st_Standout
-            MiddlePrint 6 -2
-            styleOutput $RED $BLACK "Enter Any Key To Continue!\n"
-            echo $end_Standout
-            read
+
             ;;
 
         esac
+
+        MiddlePrint 6 -2
+        styleOutput $RED $BLACK "Enter Any Key To Continue!\n"
+        echo $end_Standout
+        read
     done
 
 }
 
-#DatabaseMenu
-TableMenu
+export -f DatabaseMenu
+export -f TableMenu
+
+DatabaseMenu
+
 #DB_Name="SecondDB"
 #SelectDB
 #clear
