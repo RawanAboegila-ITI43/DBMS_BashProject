@@ -5,6 +5,7 @@ export BLACK=232
 export DEFAULT_BK=235
 export BLUE=26
 export WHITE=15
+export RED=1
 
 #### Terminal Variables ##
 
