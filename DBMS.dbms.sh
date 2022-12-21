@@ -197,24 +197,3 @@ export -f DatabaseMenu
 export -f TableMenu
 
 DatabaseMenu
-
-#DB_Name="SecondDB"
-#SelectDB
-#clear
-#SelectFromTable $DB_Name
-#UpdateTable $DB_Name
-#InsertIntoTable $DB_Name
-#DeleteFromTable $DB_Name
-#echo -e "Enter DB Name >> \c"
-#read DB_Name
-#CreateTable $DB_Name
-#DropTable $DB_Name
-#CreateDB $DB_Name
-#SelectDB
-#echo $DB_Name
-#DropDB
-#RenameDB
-#ShowDBs
-#SelectFromTable $DB_Name
-#SelectWithCondition $DB_Name
-#SelectCol $DB_Name

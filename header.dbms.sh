@@ -18,7 +18,7 @@ function CreateTable {
 
 		if [ -f "LocalDBs"/$1/$tableName"_meta.db" ]; then
 			echo "Table already exist"
-			TableMenu
+			return -1
 		else
 
 			echo -e "Enter Number of Columns: \c"
@@ -206,7 +206,7 @@ function InsertIntoTable {
 		echo "Error Inserting Data Into Table $TB_Name"
 	fi
 	row=""
-	TableMenu
+
 }
 
 function ShowTables {
@@ -665,7 +665,7 @@ function SelectAll_withCondition {
 #########################################################################################
 
 function CreateDB {
-
+	New_DBName=""
 	while true; do
 		echo -e "Enter DB Name: \n"
 		read New_DBName
@@ -748,14 +748,28 @@ function RenameDB {
 }
 
 function DropDB {
-	echo -e "Enter DB Name To be Deleted: \c"
-	read dbName
-	if [ -d "LocalDBs"/$dbName ]; then
-		rm -r "LocalDBs"/$dbName
-		sed -i "/$dbName/d" "local_DBMS.dbms"
-	else
-		echo "DB doesn't exist"
-	fi
+
+	echo -e "\nChoose A Database To be Deleted! \n"
+
+	DBNameChoice=""
+
+	select DBNameChoice in $(awk '{print}' local_DBMS.dbms) "Exit"; do
+
+		if [[ $DBNameChoice != "Exit" && $DBNameChoice != "New" ]]; then
+			if [ -d "LocalDBs"/$DBNameChoice ]; then
+				rm -r "LocalDBs"/$DBNameChoice
+				sed -i "/$DBNameChoice/d" "local_DBMS.dbms"
+			else
+				echo "DB doesn't exist"
+			fi
+			break
+		elif [[ $DBNameChoice == "Exit" ]]; then
+			break
+		else
+			echo -e "Invalid Choice!\n Choose A Valid One!\n"
+		fi
+	done
+
 }
 
 function ShowDBs {
