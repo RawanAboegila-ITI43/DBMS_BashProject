@@ -3,8 +3,8 @@
 source ./header.dbms.sh
 #DBName="SecondDB"
 SelectDB
-SelectFromTable $DB_Name
-#UpdateTable $DBName
+#SelectFromTable $DB_Name
+UpdateTable $DB_Name
 #InsertIntoTable $DB_Name
 #DeleteFromTable $DBName
 #echo -e "Enter DB Name >> \c"

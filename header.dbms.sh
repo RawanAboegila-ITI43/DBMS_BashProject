@@ -306,6 +306,8 @@ function UpdateTable {
 
 	# touch $TB_Name"_temp.db"
 
+	awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db"
+
 	updatedData=$(awk 'BEGIN{FS="'$FieldSep'"; ORS="\n";}{for(i=1;i<=NF;i++){if($'$condition_fieldNum'=="'$ConditionValue'"){gsub($'$changing_fieldNum',"'$newValue'");}} print $0}' "LocalDBs"/$1/$TB_Name".db")
 
 	# cat "LocalDBs"/$1/$TB_Name"_temp.db" > "LocalDBs"/$1/$TB_Name".db"
@@ -342,12 +344,13 @@ function SelectFromTable {
 			case $mini in
 			1)
 				SelectAll_withCondition $1 $TB_Name
-				#| column -t -s ':'
+				cat "LocalDBs"/$1/"select_temp.db"
 
 				break
 				;;
 			2)
 				SelectCol_withCondition $1 $TB_Name
+				cat "LocalDBs"/$1/"select_temp.db" | cut -d":" -f"$ViewingColoumn"
 				break
 				;;
 			*)
@@ -446,15 +449,14 @@ function SelectCol_withCondition {
 		done
 	done
 
-	((FieldNum = $(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1))
-	echo $FieldNum
+	((ViewingColoumn = $(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1))
+	echo $ViewingColoumn
 
 	#touch "LocalDBs"/$1/"edit.db"
 
 	SelectAll_withCondition $1 $2
-	#$(SelectAll_withCondition $1 $2) >>"LocalDBs"/$1/"edit.db"
-	cat "LocalDBs"/$1/"edit.db" | cut -d":" -f"$FieldNum"
-	#echo $colRes | cut -d":" -f"$FieldNum"
+	#cat "LocalDBs"/$1/"select_temp.db" | cut -d":" -f"$ViewingColoumn"
+
 }
 
 function SelectAll_withCondition {
@@ -495,11 +497,12 @@ function SelectAll_withCondition {
 		res=$(awk 'BEGIN{FS=":"; ORS="\n"}{if ($'$FieldNum''$op'"'$val'") print $0}' "LocalDBs"/$1/$2".db")
 		if [[ $res == "" ]]; then
 			echo "Value Not Found"
+			echo "" >"LocalDBs"/$1/"select_temp.db"
 			#selectCon
 		else
 			#awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db" |  column -t -s '|'
 			echo -e "OUTPUT!\n"
-			echo $res >"LocalDBs"/$1/"edit.db"
+			echo $res >"LocalDBs"/$1/"select_temp.db"
 			#return $res
 		fi
 	else
