@@ -30,6 +30,7 @@ function DatabaseMenu {
     while true; do
         rmcup
         clear
+        tput sc
         MiddlePrint -15 -15
         styleOutput 0 $YELLOW "____________________________________________"
         MiddlePrint -12 0

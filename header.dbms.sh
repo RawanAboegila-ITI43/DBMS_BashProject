@@ -18,7 +18,7 @@ function CreateTable {
 
 		if [ -f "LocalDBs"/$1/$tableName"_meta.db" ]; then
 			echo "Table already exist"
-			return -1
+			return
 		else
 
 			echo -e "Enter Number of Columns: \c"
@@ -87,7 +87,7 @@ function CreateTable {
 
 					else
 						echo -e "Enter a Valid Coloumn Name! \n"
-						return -1
+						return
 					fi
 				done
 
@@ -137,6 +137,7 @@ function DropTable {
 }
 
 function InsertIntoTable {
+	record=""
 
 	((numberOfChoices = $(ls LocalDBs/$1 | grep -c '._meta.db$') + 1))
 
@@ -151,7 +152,7 @@ function InsertIntoTable {
 			TB_Name=$tableName
 			break
 		elif [[ $choice == "Exit" ]]; then
-			break
+			return
 		else
 			echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
 		fi
@@ -211,7 +212,11 @@ function InsertIntoTable {
 
 function ShowTables {
 
-	ls LocalDBs/$1 | grep '._meta.db$' | cut -d "_" -f1
+	if [[ -z "$(ls LocalDBs/$1 | grep '._meta.db$' | cut -d "_" -f1)" ]]; then
+		echo -e "No Tables!\n"
+	else
+		ls LocalDBs/$1 | grep '._meta.db$' | cut -d "_" -f1
+	fi
 
 }
 
@@ -226,7 +231,7 @@ function DeleteFromTable {
 			if [[ $TB_Name != "Exit" ]] && (($REPLY <= $numberOfChoices)); then
 				break 2
 			elif [[ $TB_Name == "Exit" ]]; then
-				break 2
+				return
 			else
 				echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
 			fi
@@ -240,10 +245,10 @@ function DeleteFromTable {
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (($REPLY <= $ColNum)); then
-				echo $Col_Name
+				#echo $Col_Name
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
-				break 2
+				return
 			else
 				echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
 			fi
@@ -325,7 +330,7 @@ function DeleteFromTable {
 		echo -e "value not found!\n"
 
 	else
-		sed -i ''$oldValue'd' "LocalDBs"/$1/$TB_Name".db"
+		sed -i "$oldValue"'d' "LocalDBs"/$1/$TB_Name".db"
 		if [[ $? == 0 ]]; then
 			echo -e "Record Deleted Succesfully!"
 		else
@@ -345,7 +350,7 @@ function UpdateTable {
 			echo $TB_Name
 			break
 		elif [[ $TB_Name == "Exit" ]]; then
-			break
+			return
 		else
 			echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
 		fi
@@ -364,7 +369,7 @@ function UpdateTable {
 				echo $Col_Name
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
-				break 2
+				return
 			else
 				echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
 			fi
@@ -376,6 +381,21 @@ function UpdateTable {
 	echo -e "Enter New Value >> \c"
 	read newValue
 
+	ch_ColPK=$(awk 'BEGIN{FS=":"}{if(NR==(('$changing_fieldNum'+ 1))) print $3}' "LocalDBs"/$1/$TB_Name"_meta.db")
+
+	if [[ $ch_ColPK == "1" ]] && (($NumberOfRecords > 0)); then
+		while true; do
+			if [[ $newValue =~ ^[$(awk 'BEGIN{FS=":"; ORS=" "}{print $'$changing_fieldNum'}' "LocalDBs"/$1/$TB_Name".db")]$ ]]; then
+				echo -e "Value Already Exists!\nPlease Enter A Unique Value!\n"
+				echo -e ">> \c"
+				read newValue
+			else
+				break
+			fi
+
+		done
+	fi
+
 	### Condition ###
 	#Chosing Condition
 	while true; do
@@ -386,7 +406,7 @@ function UpdateTable {
 				echo $Col_Name
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
-				break 2
+				return
 			else
 				echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
 			fi
@@ -402,7 +422,6 @@ function UpdateTable {
 	touch "LocalDBs"/$1/$TB_Name"_temp.db"
 	#ColName=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+1))) print $1}' "LocalDBs"/$1/$TB_Name"_meta.db")
 	ColType=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $2}' "LocalDBs"/$1/$TB_Name"_meta.db")
-	#ColPK=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $3}' "LocalDBs"/$1/$TB_Name"_meta.db")
 
 	echo -e "\nSupported Operators: \n"
 
@@ -478,6 +497,7 @@ function UpdateTable {
 
 function SelectFromTable {
 
+	TB_Name=""
 	((numberOfChoices = $(ls LocalDBs/$1 | grep -c '._meta.db$') + 1))
 
 	select TB_Name in $(ls LocalDBs/$1 | grep '.meta.db$' | cut -d "_" -f1) "Exit"; do
@@ -486,7 +506,7 @@ function SelectFromTable {
 			echo $TB_Name
 			break
 		elif [[ $TB_Name == "Exit" ]]; then
-			break
+			return
 		else
 			echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
 		fi
@@ -565,7 +585,8 @@ function SelectCol {
 				echo $Col_Name
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
-				break 2
+				echo " " >"LocalDBs"/$1/"select_temp.db"
+				return
 			else
 				echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
 			fi
@@ -586,7 +607,7 @@ function SelectCol_withCondition {
 	## Changing Coloumn
 
 	while true; do
-		echo -e "In While!\n"
+
 		echo -e "Please Select Coloumn To View: \n"
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
@@ -594,7 +615,8 @@ function SelectCol_withCondition {
 				echo $Col_Name
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
-				break 2
+				echo " " >"LocalDBs"/$1/"select_temp.db"
+				return
 			else
 				echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
 			fi
@@ -617,15 +639,16 @@ function SelectAll_withCondition {
 	## Changing Coloumn
 
 	while true; do
-		echo -e "In While!\n"
-		echo -e "Please Select Condition Coloumn \: \n"
+
+		echo -e "Please Select Condition Coloumn: \n"
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (($REPLY <= $ColNum)); then
 				echo $Col_Name
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
-				break 2
+				echo " " >"LocalDBs"/$1/"select_temp.db"
+				return
 			else
 				echo -e "\nInvalid Choice!\n Choose A Valid One!\n"
 			fi
@@ -633,28 +656,91 @@ function SelectAll_withCondition {
 	done
 
 	((FieldNum = $(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1))
-	echo $FieldNum
 
-	echo -e "\nSupported Operators: [==, !=, >, <, >=, <=] \nSelect OPERATOR: \c"
-	read op
-	if [[ $op == "==" ]] || [[ $op == "!=" ]] || [[ $op == ">" ]] || [[ $op == "<" ]] || [[ $op == ">=" ]] || [[ $op == "<=" ]]; then
+	ColType=$(awk 'BEGIN{FS=":"}{if(NR==(('$FieldNum'+ 1))) print $2}' "LocalDBs"/$1/$TB_Name"_meta.db")
+
+	echo -e "\nSupported Operators: \n"
+
+	if [[ $ColType == "varchar" ]]; then
+		echo -e "1: ==\t2: !=\t3: Go Back!\n"
+		echo -e "\nSelect OPERATOR: \c"
+		read opChoice
+
+		case $opChoice in
+		1)
+			op="=="
+			;;
+		2)
+			op="!="
+			;;
+		3)
+			SelectFromTable
+			;;
+		*)
+			echo -e "Invalid Operator\n"
+			;;
+		esac
+
 		echo -e "\nEnter required VALUE: \c"
 		read val
-		#awk 'BEGIN{FS=":"; ORS="\n"}{if ($'$FieldNum''$op''$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db"
 
 		res=$(awk 'BEGIN{FS=":"; ORS="\n"}{if ($'$FieldNum''$op'"'$val'") print $0}' "LocalDBs"/$1/$2".db")
 		if [[ $res == "" ]]; then
 			echo "Value Not Found"
 			echo "" >"LocalDBs"/$1/"select_temp.db"
-			#selectCon
+			SelectFromTable
 		else
-			#awk 'BEGIN{FS="|"; ORS="\n"}{if ($'$FieldNum$op$val') print $'$FieldNum'}' "LocalDBs"/$1/$2"_meta.db" |  column -t -s '|'
 
 			echo $res >"LocalDBs"/$1/"select_temp.db"
-			#return $res
+
 		fi
+
 	else
-		echo "Unsupported Operator\n"
+		echo -e "1: ==\t2: !=\t3: >\t4: <\t5: >=\t6: <=\t7: Go Back!\n"
+		echo -e "\nSelect OPERATOR: \c"
+		read opChoice
+
+		case $opChoice in
+		1)
+			op="=="
+			;;
+		2)
+			op="!="
+			;;
+		3)
+			op=">"
+			;;
+		4)
+			op="<"
+			;;
+		5)
+			op=">="
+			;;
+		6)
+			op="<="
+			;;
+		7)
+
+			SelectFromTable
+			;;
+		*)
+
+			echo -e "Invalid Operator\n"
+			;;
+		esac
+
+		echo -e "\nEnter required VALUE: \c"
+		read val
+
+		res=$(awk 'BEGIN{FS=":"; ORS="\n"}{if ($'$FieldNum''$op'"'$val'") print $0}' "LocalDBs"/$1/$2".db")
+		if [[ $res == "" ]]; then
+			echo "Value Not Found"
+			echo "" >"LocalDBs"/$1/"select_temp.db"
+			SelectFromTable
+		else
+
+			echo $res >"LocalDBs"/$1/"select_temp.db"
+		fi
 
 	fi
 
@@ -674,7 +760,7 @@ function CreateDB {
 				echo "DB already exists"
 			else
 				mkdir "LocalDBs"/$New_DBName
-				echo $New_DBName >>local_DBMS.dbms
+				echo "$New_DBName" >>local_DBMS.dbms
 				break
 
 			fi
@@ -710,7 +796,7 @@ function SelectDB {
 			read
 			break
 		elif [[ $DBNameChoice == "Exit" ]]; then
-			break
+			return
 		else
 			echo -e "Invalid Choice!\n Choose A Valid One!\n"
 		fi
@@ -739,7 +825,7 @@ function RenameDB {
 				echo -e "Enter a Valid DB Name \n"
 			fi
 		elif [[ $DB_Name == "Exit" ]]; then
-			break
+			return
 		else
 			echo -e "Invalid Choice!\n Choose A Valid One!\n"
 		fi
@@ -764,7 +850,7 @@ function DropDB {
 			fi
 			break
 		elif [[ $DBNameChoice == "Exit" ]]; then
-			break
+			return
 		else
 			echo -e "Invalid Choice!\n Choose A Valid One!\n"
 		fi
@@ -774,7 +860,10 @@ function DropDB {
 
 function ShowDBs {
 	echo -e "\nLocal Databases: \n"
-	awk '{print NR "-",$0}' local_DBMS.dbms
+	if ! [[ -z local_DBMS.dbms ]]; then
+		awk '{if($0!=""){print NR "-",$0}}' local_DBMS.dbms
+	else
+		echo "No Local Databases!"
+	fi
 	echo -e "\n"
-
 }
