@@ -402,7 +402,7 @@ function UpdateTable {
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (($REPLY <= $ColNum)); then
-				
+
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
 				return
@@ -812,8 +812,9 @@ function RenameDB {
 	db_num=$(awk 'END{print NR}' local_DBMS.dbms)
 
 	select DB_Name in $(awk '{print}' local_DBMS.dbms) "Exit"; do
-		if [[ "$REPLY" =~ [[:digit:]] && (($REPLY <= $db_num)) ]]; then
+		if [[ "$REPLY" =~ [[:digit:]] ]] && (($REPLY <= $db_num)); then
 			if [[ $DB_Name != "Exit" ]]; then
+
 				echo -e "Enter New Name >> \c"
 				read newName
 				if ! [[ "$newName" =~ [[:punct:]] || "$newName" =~ [[:digit:]] || "$newName" =~ [[:digit:]] ]]; then
@@ -823,6 +824,7 @@ function RenameDB {
 				else
 					echo -e "Enter a Valid DB Name \n"
 				fi
+
 			elif [[ $DB_Name == "Exit" ]]; then
 				return
 			else
@@ -844,7 +846,7 @@ function DropDB {
 	db_num=$(awk 'END{print NR}' local_DBMS.dbms)
 
 	select DBNameChoice in $(awk '{print}' local_DBMS.dbms) "Exit"; do
-		if [[ "$REPLY" =~ [[:digit:]] && (($REPLY <= $db_num)) ]]; then
+		if [[ "$REPLY" =~ [[:digit:]] ]] && (($REPLY <= $db_num)); then
 			if [[ $DBNameChoice != "Exit" && $DBNameChoice != "New" ]]; then
 				if [ -d "LocalDBs"/$DBNameChoice ]; then
 					rm -r "LocalDBs"/$DBNameChoice
