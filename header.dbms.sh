@@ -262,7 +262,6 @@ function DeleteFromTable {
 	################################################
 
 	ColType=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $2}' "LocalDBs"/$1/$TB_Name"_meta.db")
-	#ColPK=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $3}' "LocalDBs"/$1/$TB_Name"_meta.db")
 
 	echo -e "\nSupported Operators: \n"
 
@@ -347,7 +346,7 @@ function UpdateTable {
 	select TB_Name in $(ls LocalDBs/$1 | grep '.meta.db$' | cut -d "_" -f1) "Exit"; do
 
 		if [[ $TB_Name != "Exit" ]] && (($REPLY <= $numberOfChoices)); then
-			echo $TB_Name
+			#echo $TB_Name
 			break
 		elif [[ $TB_Name == "Exit" ]]; then
 			return
@@ -366,7 +365,7 @@ function UpdateTable {
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (($REPLY <= $ColNum)); then
-				echo $Col_Name
+				#echo $Col_Name
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
 				return
