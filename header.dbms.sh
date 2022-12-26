@@ -402,7 +402,7 @@ function UpdateTable {
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$TB_Name"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (($REPLY <= $ColNum)); then
-				echo $Col_Name
+				
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
 				return
@@ -419,7 +419,6 @@ function UpdateTable {
 	read ConditionValue
 	####################
 	touch "LocalDBs"/$1/$TB_Name"_temp.db"
-	#ColName=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+1))) print $1}' "LocalDBs"/$1/$TB_Name"_meta.db")
 	ColType=$(awk 'BEGIN{FS=":"}{if(NR==(('$condition_fieldNum'+ 1))) print $2}' "LocalDBs"/$1/$TB_Name"_meta.db")
 
 	echo -e "\nSupported Operators: \n"
@@ -502,7 +501,6 @@ function SelectFromTable {
 	select TB_Name in $(ls LocalDBs/$1 | grep '.meta.db$' | cut -d "_" -f1) "Exit"; do
 
 		if [[ $TB_Name != "Exit" ]] && (($REPLY <= $numberOfChoices)); then
-			echo $TB_Name
 			break
 		elif [[ $TB_Name == "Exit" ]]; then
 			return
@@ -519,7 +517,7 @@ function SelectFromTable {
 			case $mini in
 			1)
 				SelectAll_withCondition $1 $TB_Name
-				cat "LocalDBs"/$1/"select_temp.db"
+				cat "LocalDBs"/$1/"select_temp.db" | column -t -s ':'
 
 				break
 				;;
@@ -581,7 +579,6 @@ function SelectCol {
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (($REPLY <= $ColNum)); then
-				echo $Col_Name
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
 				echo " " >"LocalDBs"/$1/"select_temp.db"
@@ -611,7 +608,6 @@ function SelectCol_withCondition {
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (($REPLY <= $ColNum)); then
-				echo $Col_Name
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
 				echo " " >"LocalDBs"/$1/"select_temp.db"
@@ -623,10 +619,8 @@ function SelectCol_withCondition {
 	done
 
 	((ViewingColoumn = $(awk 'BEGIN{FS="'$FieldSep'"}{for(i=1;i<=NF;i++){if($i=="'$Col_Name'"){ print NR}}}' "LocalDBs"/$1/$2"_meta.db") - 1))
-	echo $ViewingColoumn
 
 	SelectAll_withCondition $1 $2
-	#cat "LocalDBs"/$1/"select_temp.db" | cut -d":" -f"$ViewingColoumn"
 
 }
 
@@ -643,7 +637,6 @@ function SelectAll_withCondition {
 		select Col_Name in $(awk '{if (NR > 1) print $0}' "LocalDBs"/$1/$2"_meta.db" | cut -d "$FieldSep" -f1) "Exit"; do
 
 			if [[ $Col_Name != "Exit" ]] && (($REPLY <= $ColNum)); then
-				echo $Col_Name
 				break 2
 			elif [[ $Col_Name == "Exit" ]]; then
 				echo " " >"LocalDBs"/$1/"select_temp.db"
@@ -777,28 +770,34 @@ function SelectDB {
 	echo -e "\nChoose A Database or Create A New One: \n"
 
 	DBNameChoice=""
-
+	db_num=$(awk 'END{print NR}' local_DBMS.dbms)
 	select DBNameChoice in $(awk '{print}' local_DBMS.dbms) "New" "Exit"; do
 
-		if [[ $DBNameChoice != "Exit" && $DBNameChoice != "New" ]]; then
-			DB_Name=$DBNameChoice
-			echo -e "Connected To $DB_Name\n"
-			echo -e "Press Any Key To Continue!\c"
-			read
-			break
-		elif [[ $DBNameChoice == "New" ]]; then
-			clear
-			CreateDB
-			DB_Name=$New_DBName
-			echo -e "Database $DB_Name Created Succesfully!\n"
-			echo -e "Press Any Key To Connect To It!\c"
-			read
-			break
-		elif [[ $DBNameChoice == "Exit" ]]; then
-			return
+		if [[ "$REPLY" =~ [[:digit:]] ]] && (($REPLY <= $db_num)); then
+			if [[ $DBNameChoice != "Exit" && $DBNameChoice != "New" ]]; then
+				DB_Name=$DBNameChoice
+				echo -e "Connected To $DB_Name\n"
+				echo -e "Press Any Key To Continue!\c"
+				read
+				break
+			elif [[ $DBNameChoice == "New" ]]; then
+				clear
+				CreateDB
+				DB_Name=$New_DBName
+				echo -e "Database $DB_Name Created Succesfully!\n"
+				echo -e "Press Any Key To Connect To It!\c"
+				read
+				break
+			elif [[ $DBNameChoice == "Exit" ]]; then
+				return
+			else
+				echo -e "Invalid Choice!\n Choose A Valid One!\n"
+			fi
 		else
 			echo -e "Invalid Choice!\n Choose A Valid One!\n"
+
 		fi
+
 	done
 
 	export DB_Name
@@ -810,23 +809,28 @@ function RenameDB {
 	echo -e "\nChoose A Database: \n"
 
 	DB_Name=""
+	db_num=$(awk 'END{print NR}' local_DBMS.dbms)
 
 	select DB_Name in $(awk '{print}' local_DBMS.dbms) "Exit"; do
-
-		if [[ $DB_Name != "Exit" ]]; then
-			echo -e "Enter New Name >> \c"
-			read newName
-			if ! [[ "$newName" =~ [[:punct:]] || "$newName" =~ [[:digit:]] || "$newName" =~ [[:digit:]] ]]; then
-				mv LocalDBs/$DB_Name LocalDBs/$newName
-				sed -i "s/$DB_Name/$newName/" "local_DBMS.dbms"
-				break
+		if [[ "$REPLY" =~ [[:digit:]] && (($REPLY <= $db_num)) ]]; then
+			if [[ $DB_Name != "Exit" ]]; then
+				echo -e "Enter New Name >> \c"
+				read newName
+				if ! [[ "$newName" =~ [[:punct:]] || "$newName" =~ [[:digit:]] || "$newName" =~ [[:digit:]] ]]; then
+					mv LocalDBs/$DB_Name LocalDBs/$newName
+					sed -i "s/$DB_Name/$newName/" "local_DBMS.dbms"
+					break
+				else
+					echo -e "Enter a Valid DB Name \n"
+				fi
+			elif [[ $DB_Name == "Exit" ]]; then
+				return
 			else
-				echo -e "Enter a Valid DB Name \n"
+				echo -e "Invalid Choice!\n Choose A Valid One!\n"
 			fi
-		elif [[ $DB_Name == "Exit" ]]; then
-			return
 		else
 			echo -e "Invalid Choice!\n Choose A Valid One!\n"
+
 		fi
 	done
 
@@ -837,21 +841,26 @@ function DropDB {
 	echo -e "\nChoose A Database To be Deleted! \n"
 
 	DBNameChoice=""
+	db_num=$(awk 'END{print NR}' local_DBMS.dbms)
 
 	select DBNameChoice in $(awk '{print}' local_DBMS.dbms) "Exit"; do
-
-		if [[ $DBNameChoice != "Exit" && $DBNameChoice != "New" ]]; then
-			if [ -d "LocalDBs"/$DBNameChoice ]; then
-				rm -r "LocalDBs"/$DBNameChoice
-				sed -i "/$DBNameChoice/d" "local_DBMS.dbms"
+		if [[ "$REPLY" =~ [[:digit:]] && (($REPLY <= $db_num)) ]]; then
+			if [[ $DBNameChoice != "Exit" && $DBNameChoice != "New" ]]; then
+				if [ -d "LocalDBs"/$DBNameChoice ]; then
+					rm -r "LocalDBs"/$DBNameChoice
+					sed -i "/$DBNameChoice/d" "local_DBMS.dbms"
+				else
+					echo "DB doesn't exist"
+				fi
+				break
+			elif [[ $DBNameChoice == "Exit" ]]; then
+				return
 			else
-				echo "DB doesn't exist"
+				echo -e "Invalid Choice!\n Choose A Valid One!\n"
 			fi
-			break
-		elif [[ $DBNameChoice == "Exit" ]]; then
-			return
 		else
 			echo -e "Invalid Choice!\n Choose A Valid One!\n"
+
 		fi
 	done
 

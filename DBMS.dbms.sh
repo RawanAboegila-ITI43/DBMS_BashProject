@@ -30,7 +30,6 @@ function DatabaseMenu {
     while true; do
         rmcup
         clear
-        tput sc
         MiddlePrint -15 -15
         styleOutput 0 $YELLOW "____________________________________________"
         MiddlePrint -12 0
@@ -51,7 +50,7 @@ function DatabaseMenu {
         MiddlePrint -2 -2
         styleOutput $YELLOW $DEFAULT_BK "6: Exit"
         MiddlePrint 1 -2
-        styleOutput $BLUE $WHITE ">> \c"
+        styleOutput $BLUE $WHITE " >> \c"
         tput setab $BLUE
         tput setaf $WHITE
         read MainMenuChoice
@@ -98,6 +97,7 @@ function DatabaseMenu {
         MiddlePrint 4 -2
         styleOutput $RED $BLACK "Enter Any Key To Continue!\n"
         echo $end_Standout
+        echo -e "\n\n"
         read
     done
 
@@ -132,7 +132,7 @@ function TableMenu {
         MiddlePrint 0 -2
         styleOutput $YELLOW $DEFAULT_BK "8: Go Back"
         MiddlePrint 2 -2
-        styleOutput $BLUE $WHITE ">> \c"
+        styleOutput $BLUE $WHITE " >> \c"
         tput setab $BLUE
         tput setaf $WHITE
         read MainMenuChoice
@@ -189,6 +189,7 @@ function TableMenu {
         MiddlePrint 6 -2
         styleOutput $RED $BLACK "Enter Any Key To Continue!\n"
         echo $end_Standout
+        echo -e "\n\n"
         read
     done
 
